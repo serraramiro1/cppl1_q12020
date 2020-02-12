@@ -16,10 +16,13 @@ include_directories(
 # Library sources.
 set(LIBRARY_SOURCES
 	src/foo.cc
+	src/isometry.cc
 )
 
 # Library creation.
 add_library(foo ${LIBRARY_SOURCES})
+add_library(isometry ${LIBRARY_SOURCES})
+
 
 # Application sources.
 set(APP_SOURCES
