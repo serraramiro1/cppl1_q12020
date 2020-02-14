@@ -53,49 +53,47 @@ GTEST_TEST(Vector3Test, Vector3Operations) {
   EXPECT_EQ(t, p);
 }
 
-// GTEST_TEST(Matrix3Test, Matrix3Operations) {
-//   const double kTolerance{1e-12};
-//   Matrix3 m1{{1., 2., 3.}, {4., 5., 6.}, {7., 8., 9.}};
-//   const Matrix3 m2{1., 2., 3., 4., 5., 6., 7., 8., 9.};
-//   const Matrix3 m3 = Matrix3::kIdentity;
+GTEST_TEST(Matrix3Test, Matrix3Operations) {
+  const double kTolerance{1e-12};
+  Matrix3 m1{{1., 2., 3.}, {4., 5., 6.}, {7., 8., 9.}};
+  const Matrix3 m2{1., 2., 3., 4., 5., 6., 7., 8., 9.};
+  const Matrix3 m3 = Matrix3::kIdentity;
+  EXPECT_EQ(m1, m2);
+  EXPECT_EQ(m1 - m2, Matrix3::kZero);
+  EXPECT_EQ(m1 + m2, m1 * 2.);
+  EXPECT_EQ(m1 + m2, 2. * m2);
+  EXPECT_EQ(m1 * m1, Matrix3(std::initializer_list<double>({1.,  4.,  9., 16., 25., 36., 49., 64., 81.})));
+  EXPECT_EQ(m1 / m2, Matrix3::kOnes);
+  EXPECT_NEAR(m1.det(), 0., kTolerance);
+  m1[2][2] = 10.;
+  EXPECT_NEAR(m1.det(), -2.9999999999999996, kTolerance);
+  std::stringstream ss;
+  ss << m3;
+  EXPECT_EQ(ss.str(), "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]");
+  const std::vector<Vector3> kExpectedRows{Vector3(1., 2., 3.), Vector3(4., 5., 6.), Vector3(7., 8., 9.)};
+  const std::vector<Vector3> kExpectedCols{Vector3(1., 4., 7.), Vector3(2., 5., 8.), Vector3(3., 6., 9.)};
+  for (const Vector3& r : kExpectedRows) {
+    bool found{false};
+    for (int i = 0; i < 3; ++i) {
+      if (r == m2.row(i)) {
+        found = true;
+        break;
+      }
+    }
+    ASSERT_TRUE(found);
+  }
+  for (const Vector3& c : kExpectedCols) {
+    bool found{false};
+    for (int i = 0; i < 3; ++i) {
+      if (c == m2.col(i)) {
+        found = true;
+        break;
+      }
+    }
+    ASSERT_TRUE(found);
+  }
+}
 
-//   EXPECT_EQ(m1, m2);
-//   EXPECT_EQ(m1 - m2, Matrix3::kZero);
-//   EXPECT_EQ(m1 + m2, m1 * 2.);
-//   EXPECT_EQ(m1 + m2, 2. * m2);
-//   EXPECT_EQ(m1 * m2, {1.,  4.,  9., 16., 25., 36., 49., 64., 81.});
-//   EXPECT_EQ(m1 / m2, Matrix3::kOnes);
-//   EXPECT_NEAR(m1.det(), 0., kTolerance);
-//   m1[2][2] = 10.;
-//   EXPECT_NEAR(m1.det(), -2.9999999999999996, kTolerance);
-
-//   std::stringstream ss;
-//   ss << m3;
-//   EXPECT_EQ(ss.str(), "[[1, 0, 0], [0, 1, 0], [0, 0, 1]]");
-
-//   const std::vector<Vector3> kExpectedRows{Vector3(1., 2., 3.), Vector3(4., 5., 6.), Vector3(7., 8., 9.)};
-//   const std::vector<Vector3> kExpectedCols{Vector3(1., 4., 7.), Vector3(2., 5., 8.), Vector3(3., 6., 9.)};
-//   for (const Vector3& r : kExpectedRows) {
-//     bool found{false};
-//     for (int i = 0; i < 3; ++i) {
-//       if (r == m2.row(i)) {
-//         found = true;
-//         break;
-//       }
-//     }
-//     ASSERT_TRUE(found);
-//   }
-//   for (const Vector3& c : kExpectedCols) {
-//     bool found{false};
-//     for (int i = 0; i < 3; ++i) {
-//       if (c == m2.col(i)) {
-//         found = true;
-//         break;
-//       }
-//     }
-//     ASSERT_TRUE(found);
-//   }
-// }
 
 // GTEST_TEST(IsometryTest, IsometryOperations) {
 //   const double kTolerance{1e-12};
