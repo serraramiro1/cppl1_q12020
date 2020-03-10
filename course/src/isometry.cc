@@ -136,7 +136,7 @@ Matrix3 Matrix3::operator*(const double &other) const {
 
 Matrix3 Matrix3::operator*(const Matrix3 &other) const {
   Matrix3 output;
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     output[i] = rows_[i] * other.rows_[i];
   }
   return output;
@@ -144,7 +144,7 @@ Matrix3 Matrix3::operator*(const Matrix3 &other) const {
 
 Matrix3 Matrix3::operator*(const Vector3 &other) const {
   Matrix3 output;
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; i++) {
     output[i] = rows_[i] * other[i];
   }
   return output;
@@ -169,4 +169,92 @@ const Matrix3 Matrix3::kIdentity = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
 const Matrix3 Matrix3::kOnes = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
 const Matrix3 Matrix3::kZero = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
+// VECTOR 4
+Vector4::Vector4(const std::initializer_list<double> &rhs) {
+  if (rhs.size() != 4) {
+    throw;
+  }
+  auto begin_ptr = rhs.begin();
+  vec_[0] = *(begin_ptr++);
+  vec_[1] = *(begin_ptr++);
+  vec_[2] = *(begin_ptr++);
+  vec_[3] = *(begin_ptr);
+}
+
+Matrix4::Matrix4(const std::initializer_list<double> &rhs) {
+  if (rhs.size() != 16) {
+    throw;
+  }
+  auto begin_ptr = rhs.begin();
+  for (int i = 0; i < 4; i++) {
+    rows_[i] = Vector4{begin_ptr[4 * i], begin_ptr[4 * i + 1],
+                       begin_ptr[4 * i + 2], begin_ptr[4 * i + 3]};
+  }
+}
+
+Matrix4 Matrix4::operator*(const Matrix4 &rhs) const {
+  Matrix4 output;
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      output[i][j] = row(i) * rhs.col(j);
+    }
+  }
+  return output;
+}
+
+const Vector4 Vector4::kUnit1 = {1., 0., 0., 0.};
+const Vector4 Vector4::kUnit2 = {0., 1., 0., 0.};
+const Vector4 Vector4::kUnit3 = {0., 0., 1., 0.};
+const Vector4 Vector4::kUnit4 = {0., 0., 0., 1.};
+const Vector4 Vector4::kOnes = {1., 1., 1., 1.};
+const Vector4 Vector4::kZero = Vector4();
+
+const Matrix4 Matrix4::kIdentity = {Vector4::kUnit1, Vector4::kUnit2,
+                                    Vector4::kUnit3, Vector4::kUnit4};
+const Matrix4 Matrix4::kZero = {Vector4::kZero, Vector4::kZero, Vector4::kZero,
+                                Vector4::kZero};
+
+const Isometry Isometry::FromTranslation(const Vector3 &vec) {
+  Isometry output;
+  output.isometry_matrix_ = Matrix4::kIdentity;
+  for (int i = 0; i < 3; i++) {
+    output.isometry_matrix_[i][3] = vec[i];
+  }
+  output.translation_ = vec;
+  output.rotation_ = Matrix4::kIdentity;
+  return output;
+}
+
+Isometry Isometry::RotateAround(const Vector3 &direction, const double &value) {
+  Isometry output;
+  output.isometry_matrix_ = Matrix4::kIdentity;
+
+  if (direction == Vector3::kUnitX) {
+    output.isometry_matrix_[1][1] = std::cos(value);
+    output.isometry_matrix_[1][2] = -std::sin(value);
+    output.isometry_matrix_[2][1] = std::sin(value);
+    output.isometry_matrix_[2][2] = -std::cos(value);
+
+  } else if (direction == Vector3::kUnitY) {
+    output.isometry_matrix_[0][0] = std::cos(value);
+    output.isometry_matrix_[0][2] = std::sin(value);
+    output.isometry_matrix_[2][0] = -std::sin(value);
+    output.isometry_matrix_[2][2] = std::cos(value);
+
+  } else if (direction == Vector3::kUnitZ) {
+    output.isometry_matrix_[0][0] = std::cos(value);
+    output.isometry_matrix_[0][1] = -std::sin(value);
+    output.isometry_matrix_[1][0] = std::sin(value);
+    output.isometry_matrix_[1][1] = std::cos(value);
+  }
+  output.rotation_ = output.isometry_matrix_;
+  return output;
+}
+
+Isometry Isometry::FromEulerAngles(const double &roll, const double &pitch,
+                                   const double &yaw) {
+  return (Isometry::RotateAround(Vector3::kUnitX, roll) *
+          Isometry::RotateAround(Vector3::kUnitY, pitch) *
+          Isometry::RotateAround(Vector3::kUnitZ, yaw));
+}
 } // namespace cppcourse
