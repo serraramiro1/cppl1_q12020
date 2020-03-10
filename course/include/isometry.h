@@ -52,6 +52,7 @@ inline std::ostream &operator<<(std::ostream &ss,
             << ")";
 }
 
+ 
 class Matrix3 {
 public:
   Matrix3() {}

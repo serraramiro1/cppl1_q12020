@@ -166,6 +166,7 @@ GTEST_TEST(IsometryTest, IsometryOperations) {
 } // namespace math
 } // namespace ekumen
 
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

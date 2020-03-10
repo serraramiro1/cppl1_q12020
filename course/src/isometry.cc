@@ -40,6 +40,9 @@ bool Vector3::operator==(const Vector3 &other) const {
 }
 
 Vector3::Vector3(const std::initializer_list<double> &rhs) {
+  if (rhs.size() != 3){
+    throw;
+  }
   auto begin_ptr = rhs.begin();
   x_ = *(begin_ptr++);
   y_ = *(begin_ptr++);
