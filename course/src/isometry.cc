@@ -84,4 +84,91 @@ const double &Vector3::operator[](const int index) const {
     return z_;
   }
 }
+
+Matrix3::Matrix3(const std::initializer_list<double> &rhs) {
+  if (rhs.size() != 9) {
+    throw;
+  }
+  auto begin_vec = rhs.begin();
+  rows_[0] = Vector3{begin_vec[0], begin_vec[1], begin_vec[2]};
+  rows_[1] = Vector3{begin_vec[3], begin_vec[4], begin_vec[5]};
+  rows_[2] = Vector3{begin_vec[6], begin_vec[7], begin_vec[8]};
+}
+
+Matrix3::Matrix3(const Matrix3 &rhs) {
+  rows_[0] = rhs.rows_[0];
+  rows_[1] = rhs.rows_[1];
+  rows_[2] = rhs.rows_[2];
+}
+
+bool Matrix3::operator==(const Matrix3 &other) const {
+  return ((rows_[0] == other.rows_[0]) && (rows_[1] == rows_[1]) &&
+          (rows_[2] == other.rows_[2]));
+}
+
+Matrix3 &Matrix3::operator+=(const Matrix3 &rhs) {
+  rows_[0] = rows_[0] + rhs.rows_[0];
+  rows_[1] = rows_[1] + rhs.rows_[1];
+  rows_[2] = rows_[2] + rhs.rows_[2];
+
+  return *this;
+}
+
+Matrix3 &Matrix3::operator-=(const Matrix3 &rhs) {
+  rows_[0] = rows_[0] - rhs.rows_[0];
+  rows_[1] = rows_[1] - rhs.rows_[1];
+  rows_[2] = rows_[2] - rhs.rows_[2];
+
+  return *this;
+}
+
+Matrix3 Matrix3::operator-(const Matrix3 &other) const {
+  return (Matrix3(*this) -= other);
+}
+
+Matrix3 Matrix3::operator+(const Matrix3 &other) const {
+  Matrix3 aux{*this};
+  aux += other;
+  return aux;
+}
+
+Matrix3 Matrix3::operator*(const double &other) const {
+  return (Matrix3(rows_[0] * other, rows_[1] * other, rows_[2] * other));
+}
+
+Matrix3 Matrix3::operator*(const Matrix3 &other) const {
+  Matrix3 output;
+  for (int i = 0; i < 3; ++i) {
+    output[i] = rows_[i] * other.rows_[i];
+  }
+  return output;
+}
+
+Matrix3 Matrix3::operator*(const Vector3 &other) const {
+  Matrix3 output;
+  for (int i = 0; i < 3; ++i) {
+    output[i] = rows_[i] * other[i];
+  }
+  return output;
+}
+
+Matrix3 Matrix3::operator/(const Matrix3 &other) const {
+  Matrix3 output;
+  for (int i = 0; i < 3; i++) {
+    output[i] = rows_[i] / other.rows_[i];
+  }
+  return output;
+}
+
+double Matrix3::det() const {
+  return (
+      rows_[0][0] * (rows_[1][1] * rows_[2][2] - rows_[1][2] * rows_[2][1]) -
+      rows_[0][1] * (rows_[1][0] * rows_[2][2] - rows_[1][2] * rows_[2][0]) +
+      rows_[0][2] * (rows_[1][0] * rows_[2][1] - rows_[1][1] * rows_[2][0]));
+}
+
+const Matrix3 Matrix3::kIdentity = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
+const Matrix3 Matrix3::kOnes = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
+const Matrix3 Matrix3::kZero = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
+
 } // namespace cppcourse
