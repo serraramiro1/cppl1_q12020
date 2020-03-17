@@ -40,7 +40,7 @@ bool Vector3::operator==(const Vector3 &other) const {
 }
 
 Vector3::Vector3(const std::initializer_list<double> &rhs) {
-  if (rhs.size() != 3){
+  if (rhs.size() != 3) {
     throw;
   }
   auto begin_ptr = rhs.begin();
@@ -167,8 +167,61 @@ double Matrix3::det() const {
       rows_[0][2] * (rows_[1][0] * rows_[2][1] - rows_[1][1] * rows_[2][0]));
 }
 
+Matrix3 Matrix3::product(const Matrix3 &rhs) const {
+  Matrix3 output;
+
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      output[i][j] = row(i).dot(rhs.col(j));
+    }
+  }
+  return output;
+}
+
+Vector3 Matrix3::product(const Vector3 &rhs) const {
+  Vector3 output;
+  for (int i = 0; i < 3; ++i) {
+    output[i] = row(i).dot(rhs);
+  }
+  return output;
+}
+
 const Matrix3 Matrix3::kIdentity = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
 const Matrix3 Matrix3::kOnes = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
 const Matrix3 Matrix3::kZero = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
+const Isometry Isometry::FromTranslation(const Vector3 &vec) {
+  return Isometry{vec, Matrix3::kIdentity};
+}
+
+Isometry Isometry::RotateAround(const Vector3 &direction, const double &value) {
+  Isometry output;
+
+  if (direction == Vector3::kUnitX) {
+    output.rotation_[1][1] = std::cos(value);
+    output.rotation_[1][2] = -std::sin(value);
+    output.rotation_[2][1] = std::sin(value);
+    output.rotation_[2][2] = -std::cos(value);
+
+  } else if (direction == Vector3::kUnitY) {
+    output.rotation_[0][0] = std::cos(value);
+    output.rotation_[0][2] = std::sin(value);
+    output.rotation_[2][0] = -std::sin(value);
+    output.rotation_[2][2] = std::cos(value);
+
+  } else if (direction == Vector3::kUnitZ) {
+    output.rotation_[0][0] = std::cos(value);
+    output.rotation_[0][1] = -std::sin(value);
+    output.rotation_[1][0] = std::sin(value);
+    output.rotation_[1][1] = std::cos(value);
+  }
+  return output;
+}
+
+Isometry Isometry::FromEulerAngles(const double &roll, const double &pitch,
+                                   const double &yaw) {
+  return (Isometry::RotateAround(Vector3::kUnitX, roll) *
+          Isometry::RotateAround(Vector3::kUnitY, pitch) *
+          Isometry::RotateAround(Vector3::kUnitZ, yaw));
+}
 } // namespace cppcourse

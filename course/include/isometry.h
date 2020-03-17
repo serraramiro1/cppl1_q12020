@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <iomanip> // std::setprecision
 #include <iostream>
 #include <string>
 
@@ -72,6 +73,8 @@ public:
   Matrix3 operator*(const Matrix3 &other) const;
   Matrix3 operator*(const Vector3 &other) const;
   Matrix3 operator/(const Matrix3 &other) const;
+  Matrix3 product(const Matrix3 &rhs) const;
+  Vector3 product(const Vector3 &rhs) const;
   Matrix3 &operator-=(const Matrix3 &rhs);
   Matrix3 &operator+=(const Matrix3 &rhs);
   Matrix3 &operator=(const Matrix3 &rhs) {
@@ -117,4 +120,49 @@ inline std::ostream &operator<<(std::ostream &ss, const Matrix3 &vec) {
             << vec.row(2)[2] << "]]";
 }
 
+class Isometry {
+public:
+  Isometry() {
+    rotation_ = Matrix3::kIdentity;
+    translation_ = Vector3::kZero;
+  }
+  Isometry(const Vector3 &trans, const Matrix3 &rot) {
+    translation_ = trans;
+    rotation_ = rot;
+  }
+
+  static const Isometry FromTranslation(const Vector3 &vec);
+
+  Vector3 operator*(const Vector3 &rhs) const {
+    return (rotation_.product(rhs) + translation_);
+  }
+  Isometry operator*(const Isometry &rhs) const {
+    return (Isometry{rotation_.product(rhs.translation_) + translation_,
+                     (rotation_.product(rhs.rotation_))});
+  }
+  Isometry inverse() const {
+    // Only does inverse of translation (do we need inverse of rotation?)
+    return (Isometry::FromTranslation(translation_ * -1));
+  }
+  Isometry compose(const Isometry &rhs) const { return (*this * rhs); }
+  Vector3 transform(const Vector3 &rhs) const { return (*this * rhs); }
+  bool operator==(const Isometry &rhs) const {
+    return ((rotation_ == rhs.rotation_) && (translation_ == rhs.translation_));
+  }
+  const Matrix3 rotation() const { return rotation_; }
+  const Vector3 &translation() const { return translation_; }
+  static Isometry RotateAround(const Vector3 &direction, const double &value);
+  static Isometry FromEulerAngles(const double &roll, const double &pitch,
+                                  const double &yaw);
+
+private:
+  Matrix3 rotation_;
+  Vector3 translation_;
+};
+
+inline std::ostream &operator<<(std::ostream &ss,
+                                const cppcourse::Isometry &iso) {
+  ss << std::setprecision(9);
+  return ss << "[T: " << iso.translation() << ", R:" << iso.rotation() << "]";
+}
 } // namespace cppcourse
