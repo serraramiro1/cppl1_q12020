@@ -40,7 +40,7 @@ bool Vector3::operator==(const Vector3 &other) const {
 }
 
 Vector3::Vector3(const std::initializer_list<double> &rhs) {
-  if (rhs.size() != 3){
+  if (rhs.size() != 3) {
     throw;
   }
   auto begin_ptr = rhs.begin();
@@ -99,6 +99,22 @@ Matrix3::Matrix3(const Matrix3 &rhs) {
   rows_[0] = rhs.rows_[0];
   rows_[1] = rhs.rows_[1];
   rows_[2] = rhs.rows_[2];
+}
+
+Matrix3 Matrix3::inverse() const{
+  Matrix3 output;
+  output[0][0] = rows_[1][1] * rows_[2][2] - rows_[1][2] * rows_[2][1];
+  output[0][1] = rows_[0][2] * rows_[2][1] - rows_[0][1] * rows_[2][2];
+  output[0][2] = rows_[0][1] * rows_[1][2] - rows_[0][2] * rows_[1][1];
+
+  output[1][0] = rows_[1][2] * rows_[2][0] - rows_[1][0] * rows_[2][2];
+  output[1][1] = rows_[0][0] * rows_[2][2] - rows_[0][2] * rows_[2][0];
+  output[1][2] = rows_[0][2] * rows_[1][0] - rows_[0][0] * rows_[1][2];
+
+  output[2][0] = rows_[1][0] * rows_[2][1] - rows_[1][1] * rows_[1][2];
+  output[2][1] = rows_[0][1] * rows_[2][0] - rows_[0][0] * rows_[2][1];
+  output[2][2] = rows_[0][0] * rows_[1][1] - rows_[0][1] * rows_[1][0];
+  return (output * (1 / det()));
 }
 
 bool Matrix3::operator==(const Matrix3 &other) const {
@@ -167,8 +183,53 @@ double Matrix3::det() const {
       rows_[0][2] * (rows_[1][0] * rows_[2][1] - rows_[1][1] * rows_[2][0]));
 }
 
+Matrix3 Matrix3::product(const Matrix3 &rhs) const {
+  Matrix3 output;
+
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      output[i][j] = row(i).dot(rhs.col(j));
+    }
+  }
+  return output;
+}
+
+Vector3 Matrix3::product(const Vector3 &rhs) const {
+  Vector3 output;
+  for (int i = 0; i < 3; ++i) {
+    output[i] = row(i).dot(rhs);
+  }
+  return output;
+}
+
 const Matrix3 Matrix3::kIdentity = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
 const Matrix3 Matrix3::kOnes = {1., 1., 1., 1., 1., 1., 1., 1., 1.};
 const Matrix3 Matrix3::kZero = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
 
+Isometry Isometry::FromTranslation(const Vector3 &vec) {
+  return Isometry{vec, Matrix3::kIdentity};
+}
+
+Isometry Isometry::RotateAround(const Vector3 &direction, const double &value) {
+  Isometry output;
+
+  output.rotation_[0][0] = std::cos(value) + (direction.x() * direction.x()) * (1 - std::cos(value));
+  output.rotation_[0][1] = direction.x() * direction.y() * (1 - std::cos(value)) - direction.z() * std::sin(value);
+  output.rotation_[0][2] = direction.x() * direction.z() * (1 - std::cos(value)) + direction.y() * std::sin(value);
+  output.rotation_[1][0] = direction.y() * direction.x() * (1 - std::cos(value)) + direction.z() * std::sin(value);
+  output.rotation_[1][1] = std::cos(value) + (direction.y() * direction.y()) * (1 - std::cos(value));
+  output.rotation_[1][2] = direction.y() * direction.z() * (1 - std::cos(value)) - direction.x() * std::sin(value);
+  output.rotation_[2][0] = direction.z() * direction.x() * (1 - std::cos(value)) + direction.y() * std::sin(value);
+  output.rotation_[2][1] = direction.z() * direction.y() * (1 - std::cos(value)) + direction.x() * std::sin(value);
+  output.rotation_[2][2] = std::cos(value) + (direction.z() * direction.z()) * (1 - std::cos(value));
+
+  return output;
+}
+
+Isometry Isometry::FromEulerAngles(const double &roll, const double &pitch,
+                                   const double &yaw) {
+  return (Isometry::RotateAround(Vector3::kUnitX, roll) *
+          Isometry::RotateAround(Vector3::kUnitY, pitch) *
+          Isometry::RotateAround(Vector3::kUnitZ, yaw));
+}
 } // namespace cppcourse
